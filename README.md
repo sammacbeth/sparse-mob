@@ -2,6 +2,8 @@
 
 A minimal [matrix](https://matrix.org/), and [Riot](https://about.riot.im/)-like chat web client, optimised for mobile.
 
+[Try it out](https://sammacbeth.github.io/sparse-mob)
+
 ## Quickstart
 
 The project is a [react](https://reactjs.org/) app, which uses the [Matrix JS SDK](https://github.com/matrix-org/matrix-js-sdk) in order to sync with a Matrix homeserver.

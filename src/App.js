@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import 'bootstrap/dist/css/bootstrap.css';
 import './index.css';
-import { BrowserRouter as Router, Route, Redirect } from 'react-router-dom'
+import { HashRouter as Router, Route, Redirect } from 'react-router-dom'
 import Overview from './Overview';
 import Room from './Room';
 import Login from './Login';
