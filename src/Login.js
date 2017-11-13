@@ -10,6 +10,7 @@ export default class Login extends Component {
       homeserver: 'matrix.org',
       username: '',
       password: '',
+      disabled: false,
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -22,17 +23,22 @@ export default class Login extends Component {
   handleSubmit(event) {
     event.preventDefault();
     const { homeserver, username, password } = this.state;
-    console.log(this.state);
-    this.setState({ error: null });
+    this.setState({ error: null, disabled: true });
     this.props.client.login(username, password, homeserver).then(() => {
-      this.setState({ password: '' });
+      this.setState({
+        password: '',
+        disabled: false
+      });
     }, (error) => {
-      this.setState({ error });
+      this.setState({
+        error,
+        disabled: false
+      });
     });
   }
 
   render() {
-    const { homeserver, username, password, error } = this.state;
+    const { homeserver, username, password, error, disabled } = this.state;
     const { client, location } = this.props;
     const from = location.state && location.state.from ? location.state.from : '/';
     console.log('xxx', from);
@@ -51,6 +57,7 @@ export default class Login extends Component {
                 value={homeserver}
                 onChange={this.handleChange}
                 name='homeserver'
+                disabled={disabled}
               />
             </div>
             <div className='form-group'>
@@ -62,6 +69,7 @@ export default class Login extends Component {
                 value={username}
                 onChange={this.handleChange}
                 name='username'
+                disabled={disabled}
               />
             </div>
             <div className='form-group'>
@@ -73,10 +81,15 @@ export default class Login extends Component {
                 value={password}
                 onChange={this.handleChange}
                 name='password'
+                disabled={disabled}
               />
             </div>
             { error && <div className='alert alert-danger'>{error.message}</div>}
-            <button type="submit" className="btn btn-primary">Login</button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={disabled}>Login
+            </button>
           </form>
         </div>
       </div>
