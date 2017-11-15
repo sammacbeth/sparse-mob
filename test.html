@@ -1,8 +1,0 @@
-<!DOCTYPE html>
-<html lang="en">
-  <script src='./browser-matrix.js'></script>
-  <script>
-    const store = new matrixcs.IndexedDBStore({ indexedDB });
-    store.startup().then(() => console.log('success'), (e) => console.error('failure', e));
-  </script>
-</html>
