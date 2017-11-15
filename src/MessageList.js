@@ -103,6 +103,7 @@ export default class MessageList extends Component {
     const ts = moment(new Date(event.getTs())).fromNow();
     const mine = this.props.currentUser === event.sender.userId;
     const cardClasses = ['card', 'text-white', 'mb-2'];
+    const avatar = event.sender.getAvatarUrl('https://macbeth.cc', 25, 25, 'crop');
     cardClasses.push(mine ? 'bg-info' : 'bg-secondary');
     if (mine) {
       cardClasses.push('mine');
@@ -111,7 +112,10 @@ export default class MessageList extends Component {
       <div className={cardClasses.join(' ')} key={key} ref={ref}>
         <div className='card-body'>
           <p className='card-text'>{content}</p>
-          <small>{sender} - {ts}</small>
+          <div>
+            <img src={avatar} width={25} height={25} />
+            <small style={{ paddingLeft: '0.5rem' }}>{sender} - {ts}</small>
+          </div>
         </div>
       </div>
     )
