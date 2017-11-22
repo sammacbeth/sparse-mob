@@ -20,14 +20,12 @@ export default class Overview extends SyncedComponent {
 
   onSync(state, prevState, data) {
     if (state === 'SYNCING') {
-      console.log('sync');
       this.getRoomList();
     }
   }
 
   getRoomList() {
     const rooms = this.props.client.getRooms();
-    console.log('rooms', rooms);
     this.setState({ rooms });
   }
 

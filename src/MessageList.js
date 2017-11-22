@@ -38,7 +38,6 @@ export default class MessageList extends Component {
   _renderStateMessage(event) {
     const key = event.getId();
     const ref = (ref) => this.scrollMarkers[key] = ref;
-    const sender = event.sender ? event.sender.name : event.getSender();
     const ts = moment(new Date(event.getTs())).fromNow();
 
     let body = '';
@@ -103,7 +102,6 @@ export default class MessageList extends Component {
     const ts = moment(new Date(event.getTs())).fromNow();
     const mine = this.props.currentUser === event.sender.userId;
     const cardClasses = ['card', 'text-white', 'mb-2'];
-    const avatar = event.sender.getAvatarUrl('https://macbeth.cc', 25, 25, 'crop');
     cardClasses.push(mine ? 'bg-info' : 'bg-secondary');
     if (mine) {
       cardClasses.push('mine');
@@ -113,8 +111,14 @@ export default class MessageList extends Component {
         <div className='card-body'>
           <p className='card-text'>{content}</p>
           <div>
-            <img src={avatar} width={25} height={25} />
-            <small style={{ paddingLeft: '0.5rem' }}>{sender} - {ts}</small>
+            { event.sender && 
+              <img src={event.sender.getAvatarUrl(this.props.homeserver, 25, 25, 'crop')}
+                width={25} 
+                height={25}
+                style={{ marginRight: '0.5rem' }}
+                alt={sender} />
+            }
+            <small>{sender} - {ts}</small>
           </div>
         </div>
       </div>

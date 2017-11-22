@@ -77,6 +77,7 @@ export default class Room extends SyncedComponent {
         </div>
         <div className="row">
           <MessageList
+            homeserver={client.client.getHomeserverUrl()}
             messages={timeline}
             currentUser={client.client.getUserId()}
             scrollToMessage={scrollPos}
