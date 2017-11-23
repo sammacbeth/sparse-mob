@@ -55,6 +55,7 @@ export default class MessageList extends Component {
       type: 'system',
       text: body,
       date: ts,
+      ref: (ref) => this.scrollMarkers[event.getId()] = ref,
     }]
   }
 
@@ -85,6 +86,7 @@ export default class MessageList extends Component {
       type: 'system',
       text: memberMessages.join('; '),
       date: ts,
+      ref: (ref) => group.events.forEach((event) => this.scrollMarkers[event.getId()] = ref),
     }]
   }
 
@@ -92,11 +94,13 @@ export default class MessageList extends Component {
     const sender = event.sender ? event.sender.name : event.getSender();
     const mine = this.props.currentUser === event.sender.userId;
     return events.map((event, i) => {
+      const ref = (ref) => this.scrollMarkers[event.getId()] = ref;
       const spec = {
-        position: mine ? 'right': 'left',        
+        position: mine ? 'right': 'left',
         avatar: i === 0 && event.sender && event.sender.getAvatarUrl(this.props.homeserver, 25, 25, 'crop'),
         date: new Date(event.getTs()),
-        title: i === 0 && sender,        
+        title: i === 0 && sender,
+        ref,
       }
       const content = event.getContent();
       const msgtype = content.msgtype;
@@ -155,9 +159,11 @@ export default class MessageList extends Component {
     }, []);
     return (
       <ChatMessageList
-        className="col-sm" 
+        className="col-sm"
         lockable={true}
         dataSource={renderedMessages}
+        toBottomHeight='100%'
+        onScroll={() => console.log('xxx', arguments)}
       />
     )
   }

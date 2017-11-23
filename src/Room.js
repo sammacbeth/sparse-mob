@@ -62,6 +62,8 @@ export default class Room extends SyncedComponent {
   render() {
     const { location, client } = this.props;
     const { roomId, room, timeline, scrollPos, messageSending } = this.state;
+    const userId = client.client.getUserId();
+    const readUpTo = scrollPos || room && room.getEventReadUpTo(userId);
     const crumb = {
       link: location.pathname,
       name: room ? room.name : roomId,
@@ -79,8 +81,8 @@ export default class Room extends SyncedComponent {
           <MessageList
             homeserver={client.client.getHomeserverUrl()}
             messages={timeline}
-            currentUser={client.client.getUserId()}
-            scrollToMessage={scrollPos}
+            currentUser={userId}
+            scrollToMessage={readUpTo}
           />
         </div>
         <TextEntry
