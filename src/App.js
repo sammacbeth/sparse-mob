@@ -6,6 +6,7 @@ import Overview from './Overview';
 import Room from './Room';
 import Login from './Login';
 import MatrixClient from './matrix';
+import 'react-chat-elements/dist/main.css'
 
 const AUTH_SUCCESS = 'success';
 const AUTH_PENDING = 'pending';

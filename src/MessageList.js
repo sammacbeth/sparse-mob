@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import moment from 'moment'
+import { MessageList as ChatMessageList } from 'react-chat-elements';
+import { ContentRepo } from 'matrix-js-sdk';
 
 const membershipNames = {
   'join': 'Joined: ',
@@ -36,9 +37,7 @@ export default class MessageList extends Component {
   }
 
   _renderStateMessage(event) {
-    const key = event.getId();
-    const ref = (ref) => this.scrollMarkers[key] = ref;
-    const ts = moment(new Date(event.getTs())).fromNow();
+    const ts = new Date(event.getTs());
 
     let body = '';
 
@@ -52,20 +51,16 @@ export default class MessageList extends Component {
       default:
         body = "[Message: "+event.getType()+" Content: "+JSON.stringify(event.getContent())+"]";
     }
-
-    return (
-      <div className={`card text-gray mb-1`} key={key} ref={ref}>
-        <div className='card-body'>
-          <small>{body} - {ts}</small>
-        </div>
-      </div>
-    )
+    return [{
+      type: 'system',
+      text: body,
+      date: ts,
+    }]
   }
 
   _renderMembershipMessage(group) {
     const lastEvent = group.events[group.events.length - 1];
-    const ts = moment(new Date(lastEvent.getTs())).fromNow();
-    const key = lastEvent.getId();
+    const ts = new Date(lastEvent.getTs());
     const changeset = group.events.reduce((changes, event) => {
       const sender = event.sender ? event.sender.name : event.getSender();
       const what = event.getContent().membership;
@@ -86,55 +81,49 @@ export default class MessageList extends Component {
       }
       return messages;
     }, []);
-    return (
-      <div className={`card text-gray mb-1`} key={key}>
-        <div className='card-body'>
-          <small>{memberMessages.join('; ')} - {ts}</small>
-        </div>
-      </div>
-    )
+    return [{
+      type: 'system',
+      text: memberMessages.join('; '),
+      date: ts,
+    }]
   }
 
-  _renderMessage(event, content) {
-    const key = event.getId();
-    const ref = (ref) => this.scrollMarkers[key] = ref;
+  _renderMessage(event, events) {
     const sender = event.sender ? event.sender.name : event.getSender();
-    const ts = moment(new Date(event.getTs())).fromNow();
     const mine = this.props.currentUser === event.sender.userId;
-    const cardClasses = ['card', 'text-white', 'mb-2'];
-    cardClasses.push(mine ? 'bg-info' : 'bg-secondary');
-    if (mine) {
-      cardClasses.push('mine');
-    }
-    return (
-      <div className={cardClasses.join(' ')} key={key} ref={ref}>
-        <div className='card-body'>
-          <p className='card-text'>{content}</p>
-          <div>
-            { event.sender && 
-              <img src={event.sender.getAvatarUrl(this.props.homeserver, 25, 25, 'crop')}
-                width={25} 
-                height={25}
-                style={{ marginRight: '0.5rem' }}
-                alt={sender} />
-            }
-            <small>{sender} - {ts}</small>
-          </div>
-        </div>
-      </div>
-    )
+    return events.map((event, i) => {
+      const spec = {
+        position: mine ? 'right': 'left',        
+        avatar: i === 0 && event.sender && event.sender.getAvatarUrl(this.props.homeserver, 25, 25, 'crop'),
+        date: new Date(event.getTs()),
+        title: i === 0 && sender,        
+      }
+      const content = event.getContent();
+      const msgtype = content.msgtype;
+      if (msgtype === 'm.image') {
+        const maxWidth = 300
+        let { w, h } = content.info;
+        if (w > maxWidth) {
+          h = Math.floor(h * (maxWidth / w))
+          w = maxWidth;
+        }
+        spec.type = 'photo';
+        spec.data = {
+          width: w,
+          height: h,
+          uri: ContentRepo.getHttpUriForMxc(this.props.homeserver, content.url, w, h, 'scale')
+        };
+      } else {
+        spec.type = 'text';
+        spec.text = content.body;
+      }
+      return spec;
+    });
   }
 
   _renderEventGroup(group) {
     if (group.type === 'm.room.message') {
-      const content = group.events.reduce((output, e, i) => {
-        output.push(e.getContent().body)
-        if (i < group.events.length - 1) {
-          output.push(<br />);
-        }
-        return output;
-      }, []);
-      return this._renderMessage(group.events[group.events.length - 1], content);
+      return this._renderMessage(group.events[group.events.length - 1], group.events);
     } else if (group.type === 'm.room.member') {
       return this._renderMembershipMessage(group);
     } else {
@@ -161,13 +150,15 @@ export default class MessageList extends Component {
       }
       return groupedMessages;
     }, []);
-    const renderedMessages = messageGroups.map((group) => {
-      return this._renderEventGroup(group);
-    });
+    const renderedMessages = messageGroups.reduce((list, group) => {
+      return list.concat(this._renderEventGroup(group));
+    }, []);
     return (
-      <div className="col-sm">
-        {renderedMessages}
-      </div>
+      <ChatMessageList
+        className="col-sm" 
+        lockable={true}
+        dataSource={renderedMessages}
+      />
     )
   }
 }
