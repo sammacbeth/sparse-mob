@@ -34,7 +34,7 @@ export default class Room extends SyncedComponent {
     const { roomId } = this.state;
     const room = client.getRoom(roomId);
     const timeline = room ? [...room.timeline] : [];
-    const scrollPos = overrideScrollPos || this.state.scrollPos || timeline.length > 0 ? timeline[timeline.length - 1].getId() : null;
+    const scrollPos = overrideScrollPos || this.state.scrollPos || (timeline.length > 0 ? timeline[timeline.length - 1].getId() : null);
 
     this.setState({
       room,
@@ -59,6 +59,14 @@ export default class Room extends SyncedComponent {
     });
   }
 
+  scrollback({ scroll = true }) {
+    const { timeline, room } = this.state;
+    const firstMessage = timeline[0].getId();
+    this.props.client.client.scrollback(room).then(() => {
+      this.updateRoomState(scroll && firstMessage);
+    });
+  }
+
   render() {
     const { location, client } = this.props;
     const { roomId, room, timeline, scrollPos, messageSending } = this.state;
@@ -72,9 +80,7 @@ export default class Room extends SyncedComponent {
       <div>
         <NavBar breadcrumbs={[crumb]} />
         <div className='row'>
-          <button className="btn btn-outline-primary btn-sm btn-block" onClick={() => client.client.scrollback(room).then(() => {
-            this.updateRoomState(timeline[0].getId());
-          })}
+          <button className="btn btn-outline-primary btn-sm btn-block" onClick={this.scrollback.bind(this)}
           >Load older messages</button>
         </div>
         <div className="row">

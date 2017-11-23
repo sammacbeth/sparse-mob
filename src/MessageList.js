@@ -163,7 +163,6 @@ export default class MessageList extends Component {
         lockable={true}
         dataSource={renderedMessages}
         toBottomHeight='100%'
-        onScroll={() => console.log('xxx', arguments)}
       />
     )
   }
