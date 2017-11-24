@@ -16,6 +16,7 @@ export default class Room extends SyncedComponent {
       timeline: [],
       scrollPos: null,
     }
+    this.initialScrollbackDone = false;
   }
 
   componentDidMount() {
@@ -34,13 +35,21 @@ export default class Room extends SyncedComponent {
     const { roomId } = this.state;
     const room = client.getRoom(roomId);
     const timeline = room ? [...room.timeline] : [];
-    const scrollPos = overrideScrollPos || this.state.scrollPos || (timeline.length > 0 ? timeline[timeline.length - 1].getId() : null);
+    let scrollPos = overrideScrollPos || this.state.scrollPos || (timeline.length > 0 ? timeline[timeline.length - 1].getId() : null);
 
     this.setState({
       room,
       timeline: room ? [...room.timeline] : [],
       scrollPos,
     });
+
+    if (!this.initialScrollbackDone && room && timeline.length > 0 && (timeline.length < 20 ||
+      (scrollPos && timeline.findIndex((e) => e.getId() !== scrollPos)))) {
+      client.client.scrollback(room).then(() => {
+        this.initialScrollbackDone = true;
+        this.updateRoomState(scrollPos);
+      });
+    }
   }
 
   onMessageSubmit(message) {
@@ -71,7 +80,7 @@ export default class Room extends SyncedComponent {
     const { location, client } = this.props;
     const { roomId, room, timeline, scrollPos, messageSending } = this.state;
     const userId = client.client.getUserId();
-    const readUpTo = scrollPos || room && room.getEventReadUpTo(userId);
+    const readUpTo = scrollPos || (room && room.getEventReadUpTo(userId));
     const crumb = {
       link: location.pathname,
       name: room ? room.name : roomId,

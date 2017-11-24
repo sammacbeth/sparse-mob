@@ -26,13 +26,16 @@ export default class MessageList extends Component {
     super(props);
     this.scrollMarkers = {};
     this.scrollPos = null;
+    this.messageCount = 0;
   }
 
   componentDidUpdate() {
     const messageId = this.props.scrollToMessage;
-    if (this.scrollPos !== messageId && this.scrollMarkers[messageId]) {
+    const timelineLength = this.props.messages.length;
+    if ((this.scrollPos !== messageId || timelineLength - this.messageCount > 10) && this.scrollMarkers[messageId]) {
       ReactDOM.findDOMNode(this.scrollMarkers[messageId]).scrollIntoView();
       this.scrollPos = messageId;
+      this.messageCount = timelineLength;
     }
   }
 
