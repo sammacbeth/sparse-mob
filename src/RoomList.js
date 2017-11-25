@@ -20,7 +20,7 @@ export default class RoomList extends Component {
                   <img src={room.avatarUrl} style={{ width: '40px', height: '40px' }} alt=''/>
                   <div className='w-100' style={{ paddingLeft: '0.4rem' }}>
                     <h5 className="mb-1">{room.name}</h5>
-                    <small>{moment(room.lastEvent).calendar(null, {
+                    <small>{moment(room.lastMessage).calendar(null, {
                         sameElse: 'DD/MM/YYYY'
                     })}</small>
                   </div>

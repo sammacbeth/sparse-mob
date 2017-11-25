@@ -3,8 +3,8 @@ import matrixcs from 'matrix-js-sdk';
 const CREDENTIALS_KEY = 'matrix_credentials';
 
 function roomComparator(a, b) {
-  const aCmp = a.lastEvent;
-  const bCmp = b.lastEvent;
+  const aCmp = a.lastMessage;
+  const bCmp = b.lastMessage;
 
   if (!aCmp) {
     return 1;
@@ -139,12 +139,15 @@ export default class MatrixClient {
   _getPlainRoom(room) {
     const lastEvent = room.timeline[room.timeline.length - 1];
     const lastEventTs = lastEvent ? lastEvent.getTs() : null;
+    const lastMessage = [...room.timeline].reverse().find(e => e.getType() === 'm.room.message');
+    const lastMessageTs = lastMessage ? lastMessage.getTs() : room.timeline[0].getTs();
     return {
       roomId: room.roomId,
       name: room.name,
       avatarUrl: room.getAvatarUrl(this.client.getHomeserverUrl(), 40, 40, 'scale'),
       unreadCount: 0,
-      lastEvent: lastEventTs
+      lastEvent: lastEventTs,
+      lastMessage: lastMessageTs,
     }
   }
 
