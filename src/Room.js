@@ -14,14 +14,21 @@ export default class Room extends SyncedComponent {
       roomId,
       room: null,
       timeline: [],
-      scrollPos: null,
     }
-    this.initialScrollbackDone = false;
+    this.roomIsReady = false;
+    this.scrollbackLimit = 5;
   }
 
   componentDidMount() {
     super.componentDidMount();
     this.updateRoomState();
+  }
+
+  componentDidUpdate() {
+    if (this.doScrollTo && this.messageList) {
+      this.messageList.scrollToMessage(this.doScrollTo);
+      this.doScrollTo = null;
+    }
   }
 
   onSync(state) {
@@ -30,25 +37,38 @@ export default class Room extends SyncedComponent {
     }
   }
 
-  updateRoomState(overrideScrollPos) {
+  updateRoomState() {
     const { client } = this.props;
     const { roomId } = this.state;
     const room = client.getRoom(roomId);
+    const userId = client.client.getUserId();
     const timeline = room ? [...room.timeline] : [];
-    let scrollPos = overrideScrollPos || this.state.scrollPos || (timeline.length > 0 ? timeline[timeline.length - 1].getId() : null);
+    const roomLoaded = room && timeline.length > 0;
 
     this.setState({
       room,
       timeline: room ? [...room.timeline] : [],
-      scrollPos,
     });
 
-    if (!this.initialScrollbackDone && room && timeline.length > 0 && (timeline.length < 20 ||
-      (scrollPos && timeline.findIndex((e) => e.getId() !== scrollPos)))) {
-      client.client.scrollback(room).then(() => {
-        this.initialScrollbackDone = true;
-        this.updateRoomState(scrollPos);
-      });
+    if (roomLoaded && !this.roomIsReady) {
+      const readUpTo = room.getEventReadUpTo(userId);
+      const readMessageInTimeline = timeline.findIndex((e) => e.getId() !== readUpTo) !== -1;
+      const shouldLoadMore = this.scrollbackLimit > 0 && (timeline.length < 20 || !readMessageInTimeline);
+      if (shouldLoadMore) {
+        this.scrollbackLimit -= 1;
+        // we need more messages - either because there are too few, or because we didn't get to the last read message yet
+        client.client.scrollback(room).then(() => {
+          this.updateRoomState();
+        });
+      }
+      // if the message is in the timeline, lets scroll to it
+      if (readMessageInTimeline) {
+        console.log('xxx', 'set scroll to', readUpTo)
+        this.doScrollTo = readUpTo;
+      }
+      if (!shouldLoadMore) {
+        this.roomIsReady = true;
+      }
     }
   }
 
@@ -78,9 +98,8 @@ export default class Room extends SyncedComponent {
 
   render() {
     const { location, client } = this.props;
-    const { roomId, room, timeline, scrollPos, messageSending } = this.state;
+    const { roomId, room, timeline, messageSending } = this.state;
     const userId = client.client.getUserId();
-    const readUpTo = scrollPos || (room && room.getEventReadUpTo(userId));
     const crumb = {
       link: location.pathname,
       name: room ? room.name : roomId,
@@ -97,7 +116,7 @@ export default class Room extends SyncedComponent {
             homeserver={client.client.getHomeserverUrl()}
             messages={timeline}
             currentUser={userId}
-            scrollToMessage={readUpTo}
+            ref={(ref) => this.messageList = ref}
           />
         </div>
         <TextEntry

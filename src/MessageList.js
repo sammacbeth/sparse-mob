@@ -24,19 +24,17 @@ export default class MessageList extends Component {
 
   constructor(props) {
     super(props);
-    this.scrollMarkers = {};
-    this.scrollPos = null;
-    this.messageCount = 0;
   }
 
   componentDidUpdate() {
-    const messageId = this.props.scrollToMessage;
-    const timelineLength = this.props.messages.length;
-    if ((this.scrollPos !== messageId || timelineLength - this.messageCount > 10) && this.scrollMarkers[messageId]) {
-      ReactDOM.findDOMNode(this.scrollMarkers[messageId]).scrollIntoView();
-      this.scrollPos = messageId;
-      this.messageCount = timelineLength;
+    if (this.doScrollTo && this.scrollMarkers[this.doScrollTo]) {
+      ReactDOM.findDOMNode(this.scrollMarkers[this.doScrollTo]).scrollIntoView();
+      this.doScrollTo = null;
     }
+  }
+
+  scrollToMessage(eventId) {
+    this.doScrollTo = eventId;
   }
 
   _renderStateMessage(event) {
