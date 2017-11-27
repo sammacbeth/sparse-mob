@@ -42,7 +42,7 @@ export default class Room extends SyncedComponent {
     const { roomId } = this.state;
     const room = client.getRoom(roomId);
     const userId = client.client.getUserId();
-    const timeline = room ? [...room.timeline] : [];
+    const timeline = room ? [...room.getLiveTimeline().getEvents()] : [];
     const roomLoaded = room && timeline.length > 0;
 
     this.setState({

@@ -22,10 +22,6 @@ const groupingConditions = {
 
 export default class MessageList extends Component {
 
-  constructor(props) {
-    super(props);
-  }
-
   componentDidUpdate() {
     if (this.doScrollTo && this.scrollMarkers[this.doScrollTo]) {
       ReactDOM.findDOMNode(this.scrollMarkers[this.doScrollTo]).scrollIntoView();
