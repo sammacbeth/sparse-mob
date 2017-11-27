@@ -3,8 +3,8 @@ import matrixcs from 'matrix-js-sdk';
 const CREDENTIALS_KEY = 'matrix_credentials';
 
 function roomComparator(a, b) {
-  const aCmp = a.lastMessage;
-  const bCmp = b.lastMessage;
+  const aCmp = a.lastMessageTs;
+  const bCmp = b.lastMessageTs;
 
   if (!aCmp) {
     return 1;
@@ -137,17 +137,23 @@ export default class MatrixClient {
   }
 
   _getPlainRoom(room) {
-    const lastEvent = room.timeline[room.timeline.length - 1];
+    const timeline = room.getLiveTimeline().getEvents();
+    const lastEvent = timeline[timeline.length - 1];
     const lastEventTs = lastEvent ? lastEvent.getTs() : null;
-    const lastMessage = [...room.timeline].reverse().find(e => e.getType() === 'm.room.message');
-    const lastMessageTs = lastMessage ? lastMessage.getTs() : room.timeline[0].getTs();
+    const messageTimeline = timeline.filter(e => e.getType() === 'm.room.message');
+    const lastMessage = messageTimeline.length > 0 && messageTimeline[messageTimeline.length - 1];
+    const lastMessageTs = lastMessage ? lastMessage.getTs() : timeline[0].getTs();
+    const readUpTo = room.getEventReadUpTo(this.client.getUserId());
+    const unreadCount = messageTimeline.length - messageTimeline.findIndex((e) => e.getId() === readUpTo) - 1;
     return {
       roomId: room.roomId,
       name: room.name,
+      lastMessage,
+      lastMessageTs,
       avatarUrl: room.getAvatarUrl(this.client.getHomeserverUrl(), 40, 40, 'scale'),
-      unreadCount: 0,
+      unreadCount,
       lastEvent: lastEventTs,
-      lastMessage: lastMessageTs,
+      notifications: room.getUnreadNotificationCount()
     }
   }
 

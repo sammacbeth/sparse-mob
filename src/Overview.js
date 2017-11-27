@@ -40,10 +40,11 @@ export default class Overview extends SyncedComponent {
   }
 
   render() {
+    const { history } = this.props;
     const { rooms, error } = this.state;
     let content;
     if (rooms) {
-      content = (<RoomList rooms={rooms}/>);
+      content = (<RoomList rooms={rooms} onRoomClicked={(roomId) => history.push(`/room/${roomId}`)}/>);
     } else {
       content = (<div className='alert alert-info'>Fetching room list...</div>)
     }
